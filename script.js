@@ -1,7 +1,7 @@
-let display = document.getElementById("display");
+const display = document.getElementById("display");
 
 function appendValue(value) {
-    display.value += value;
+    display.value = display.value + value;
 }
 
 function clearDisplay() {
@@ -14,15 +14,17 @@ function deleteLast() {
 
 function calculate() {
     try {
-        if (display.value === "") return;
-
-        let result = eval(display.value);
-
-        if (!Number.isFinite(result)) {
-            display.value = "Error";
-        } else {
-            display.value = result;
+        if (display.value === "") {
+            return;
         }
+
+        const result = Function(
+            '"use strict"; return (' + display.value + ')'
+        )();
+
+        display.value = Number.isFinite(result)
+            ? result
+            : "Error";
 
     } catch (error) {
         display.value = "Error";
