@@ -1,78 +1,41 @@
-let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
 
-const form = document.getElementById("transaction-form");
-const titleInput = document.getElementById("title");
-const amountInput = document.getElementById("amount");
-const typeInput = document.getElementById("type");
+let display = document.getElementById("display");
 
-form.addEventListener("submit", function(event) {
-    event.preventDefault();
-
-    const title = titleInput.value.trim();
-    const amount = Number(amountInput.value);
-    const type = typeInput.value;
-
-    if (!title || !Number.isFinite(amount) || amount <= 0) {
-        alert("Please enter valid details!");
-        return;
+function appendValue(value) {
+    if (display.value === "Error") {
+        display.value = "";
     }
-
-    const transaction = {
-        id: Date.now(),
-        title: title,
-        amount: amount,
-        type: type
-    };
-
-    transactions.push(transaction);
-
-    saveData();
-    updateUI();
-    form.reset();
-});
-
-function saveData() {
-    localStorage.setItem("transactions", JSON.stringify(transactions));
+    display.value += value;
 }
 
-function updateUI() {
-    const income = transactions
-        .filter(t => t.type === "income")
-        .reduce((total, t) => total + t.amount, 0);
-
-    const expense = transactions
-        .filter(t => t.type === "expense")
-        .reduce((total, t) => total + t.amount, 0);
-
-    document.getElementById("income").innerText = "₹" + income;
-    document.getElementById("expense").innerText = "₹" + expense;
-    document.getElementById("balance").innerText = "₹" + (income - expense);
-
-    const list = document.getElementById("transaction-list");
-    list.innerHTML = "";
-
-    transactions.forEach(function(t) {
-        const li = document.createElement("li");
-        li.className = t.type;
-
-        li.innerHTML = `
-            <div class="transaction-info">
-                <strong>${t.title}</strong>
-                <span>₹${t.amount}</span>
-            </div>
-            <button class="delete-btn" type="button" onclick="deleteTransaction(${t.id})">
-                Delete
-            </button>
-        `;
-
-        list.appendChild(li);
-    });
+function clearDisplay() {
+    display.value = "";
 }
 
-function deleteTransaction(id) {
-    transactions = transactions.filter(t => t.id !== id);
-    saveData();
-    updateUI();
+function deleteLast() {
+    display.value = display.value.slice(0, -1);
 }
 
-updateUI();
+function calculate() {
+    try {
+        if (display.value.trim() === "") return;
+
+        const expression = display.value;
+
+        if (!/^[0-9+\-*/.() ]+$/.test(expression)) {
+            throw new Error("Invalid");
+        }
+
+        const result = Function(
+            '"use strict"; return (' + expression + ')'
+        )();
+
+        if (!Number.isFinite(result)) {
+            throw new Error("Invalid");
+        }
+
+        display.value = result;
+    } catch {
+        display.value = "Error";
+    }
+}
