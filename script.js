@@ -1,10 +1,6 @@
-
 let display = document.getElementById("display");
 
 function appendValue(value) {
-    if (display.value === "Error") {
-        display.value = "";
-    }
     display.value += value;
 }
 
@@ -18,24 +14,17 @@ function deleteLast() {
 
 function calculate() {
     try {
-        if (display.value.trim() === "") return;
+        if (display.value === "") return;
 
-        const expression = display.value;
-
-        if (!/^[0-9+\-*/.() ]+$/.test(expression)) {
-            throw new Error("Invalid");
-        }
-
-        const result = Function(
-            '"use strict"; return (' + expression + ')'
-        )();
+        let result = eval(display.value);
 
         if (!Number.isFinite(result)) {
-            throw new Error("Invalid");
+            display.value = "Error";
+        } else {
+            display.value = result;
         }
 
-        display.value = result;
-    } catch {
+    } catch (error) {
         display.value = "Error";
     }
 }
